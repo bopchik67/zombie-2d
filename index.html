@@ -32,9 +32,9 @@
     --font-mono:'JetBrains Mono', monospace;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:var(--bg);touch-action:none;}
+  html,body{margin:0;padding:0;width:100%;height:100%;height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%;background:var(--bg);touch-action:none;}
   body{font-family:var(--font-mono);color:var(--bone);}
-  #app{position:relative;width:100vw;height:100vh;overflow:hidden;}
+  #app{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;}
   canvas{position:absolute;inset:0;display:block;background:var(--bg);}
 
   #hazardFrame{
@@ -76,7 +76,7 @@
   #biomeDisplay{color:#8fd38a;font-size:12px;letter-spacing:0.5px;}
   #relicsDisplay{color:#ffb37a;font-size:12px;letter-spacing:0.5px;}
 
-  #waveBarWrap{position:fixed;top:80px;right:16px;width:clamp(140px,30vw,220px);height:4px;background:var(--panel);border:1px solid var(--panel-border);}
+  #waveBarWrap{position:fixed;top:8px;left:12px;right:12px;width:auto;height:4px;z-index:2;background:var(--panel);border:1px solid var(--panel-border);}
   #waveBar{height:100%;width:0%;background:var(--olive);}
 
   #coopBtn{position:fixed;left:18px;bottom:18px;z-index:30;padding:10px 14px;border:1px solid rgba(216,207,176,.35);background:rgba(24,28,18,.88);color:#d8cfb0;border-radius:10px;font:700 12px Oswald,sans-serif;cursor:pointer;}
@@ -100,7 +100,7 @@
   #hostQuickCode{font:800 34px 'JetBrains Mono',monospace;letter-spacing:6px;text-align:center;color:#f4d35e;
     background:#0d100b;border:1px solid rgba(216,207,176,.25);border-radius:9px;padding:14px 8px;margin-bottom:8px;}
   .coop-divider{text-align:center;color:#6b6753;font-size:12px;letter-spacing:1px;margin:8px 0;text-transform:uppercase;}
-  .coop-box{max-height:88vh;overflow-y:auto;}
+  .coop-box{max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   /* ---------- Коопер: выбор роли и пошаговые сценарии ---------- */
   .coop-hint{color:#9d9679;font-size:12.5px;line-height:1.45;margin:2px 0 16px;}
   .coop-role-btn{display:flex;align-items:center;gap:14px;width:100%;padding:16px;margin:10px 0 0;
@@ -151,8 +151,12 @@
   .toast.hide{opacity:0;}
 
   /* ---------- Overlays ---------- */
-  .overlay{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:rgba(10,11,7,0.94);text-align:center;padding:24px;}
+  .overlay{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    background:rgba(10,11,7,0.94);text-align:center;padding:24px 16px 84px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;}
+  .overlay > :first-child{margin-top:auto;}
+  .overlay > :last-child{margin-bottom:auto;}
+  .coop-box,#shopGrid,#campGrid,#coopPanel,#devPanel,#settingsPanel{touch-action:pan-y;}
   .hidden{display:none !important;}
 
   h1{font-family:var(--font-display);font-weight:700;text-transform:uppercase;letter-spacing:3px;
@@ -177,7 +181,7 @@
 
   #shopGrid{
     display:flex;flex-direction:column;gap:2px;
-    width:min(940px,92vw);max-height:60vh;overflow-y:auto;padding:4px 6px 10px;
+    width:min(940px,92vw);max-height:60vh;max-height:60dvh;overflow-y:auto;padding:4px 6px 10px;
   }
   #shopGrid::-webkit-scrollbar{width:8px;}
   #shopGrid::-webkit-scrollbar-thumb{background:var(--olive-dark);}
@@ -214,7 +218,7 @@
     font-size:clamp(1.4rem,5vw,2.2rem);margin:0 0 6px;}
   #campPointsRow{color:#8fd38a;font-family:var(--font-mono);font-weight:700;margin-bottom:14px;font-size:15px;}
   #campGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;
-    width:min(940px,92vw);max-height:56vh;overflow-y:auto;padding:4px 6px 10px;}
+    width:min(940px,92vw);max-height:56vh;max-height:56dvh;overflow-y:auto;padding:4px 6px 10px;}
   .camp-card{background:var(--panel);border:1px solid var(--panel-border);border-left:4px solid #6b8a42;padding:12px;text-align:left;}
   .camp-card.owned{border-left-color:#8fd38a;}
   .camp-card.equipped{border-left-color:var(--yellow);}
@@ -225,7 +229,7 @@
   .camp-btn.disabled{opacity:0.35;cursor:not-allowed;filter:none;}
   .camp-btn.active-state{background:#2f4a1e;border-color:#8fd38a;}
 
-  #settingsBtn{position:fixed;top:14px;left:14px;z-index:30;padding:8px 11px;
+  #settingsBtn{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;padding:10px 14px;
     border:1px solid rgba(216,207,176,.35);background:rgba(24,28,18,.88);color:#d8cfb0;
     border-radius:10px;font-size:16px;cursor:pointer;}
   #settingsPanel{position:fixed;inset:0;z-index:95;background:rgba(8,10,7,.9);display:flex;align-items:center;justify-content:center;}
@@ -248,6 +252,40 @@
     letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;text-shadow:0 0 20px rgba(176,54,42,0.5);}
   #finalStats{font-size:15px;line-height:2;color:var(--bone-dim);margin-bottom:24px;}
   #finalStats b{color:var(--yellow);}
+
+  /* ---------- Телефон ---------- */
+  .more-info{margin-top:6px;text-align:left;max-width:600px;}
+  .more-info summary{cursor:pointer;color:var(--yellow);font-family:var(--font-display);letter-spacing:1px;text-align:center;padding:6px 0;}
+  .more-info div{margin:6px 0;line-height:1.45;}
+  @media (max-width:640px), (max-height:520px){
+    .lead{font-size:13px;line-height:1.45;margin:12px 0 6px;}
+    .controls-hint{font-size:12px;margin-bottom:14px;}
+    .big-btn{padding:12px 26px;font-size:1rem;letter-spacing:2px;}
+    h1{font-size:clamp(1.8rem,9vw,3rem);}
+    #hpWrap{top:18px;left:10px;height:20px;width:clamp(120px,34vw,200px);}
+    #hpText{font-size:10px;}
+    #minimapWrap{top:46px;left:10px;width:104px;height:72px;}
+    #minimapLabel{display:none;}
+    #topRight{top:18px;right:10px;gap:4px;}
+    .stat-pill{padding:3px 8px;font-size:11px;}
+    #biomeDisplay,#relicsDisplay{font-size:10px;}
+    #shopBtn{bottom:14px;right:10px;padding:9px 12px;font-size:12px;letter-spacing:1px;}
+    #coopBtn{left:10px;bottom:14px;padding:9px 10px;font-size:11px;}
+    #settingsBtn{bottom:14px;padding:8px 11px;}
+    #reviveStatus{top:50px !important;font-size:11px;}
+    #shieldStatus{top:84px !important;font-size:11px;}
+    .shop-section-grid{gap:8px;}
+    #campGrid{grid-template-columns:1fr;}
+    .card{min-width:0;padding:10px;}
+    .card-head{min-width:0;}
+    .card-name{min-width:0;overflow-wrap:anywhere;font-size:10.5px;letter-spacing:0;}
+    .shop-section-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    #hazardFrame{border-width:3px;}
+  }
+  @media (max-height:520px){
+    .overlay{padding-bottom:60px;}
+    #shopGrid,#campGrid{max-height:48dvh;}
+  }
 </style>
 </head>
 <body>
@@ -410,11 +448,13 @@
       <div>📱 Джойстик в левом нижнем углу — на телефоне</div>
       <div>🗺️ Мини-карта сверху слева показывает всю зону и зомби</div>
       <div>📦 Кнопка «Склад» — прокачка в любой момент</div>
+      <details class="more-info"><summary>Подробнее о зомби, реликвиях и биомах</summary>
       <div>💎 Зомби иногда роняют реликвии (⚔️💰👟❤️) — эффект от них навсегда и складывается. Изредка попадаются проклятые (🩸🕸️💢) — сильный бонус, но с ценой</div>
       <div>🧟 Обычные · 🏃 быстрые · 🐕 стая гончих · 🎯 танки · 🛡 бронированные · 🤢 плевуны · 💥 взрывающиеся · 📢 крикуны · 🧙 некроманты (лечат/ускоряют других) · 🛡️ щитоносцы (укрывают соседей) · 💨 рывковые · 👹 БОСС каждые 5 волн · 👑 КОРОЛЬ ЗОМБИ каждые 15 волн (вместо босса — крупнее, живучее, с дальниками на плечах)</div>
       <div>✨ На поздних волнах среди зомби встречаются элитные — со светящейся подсветкой и усиленными характеристиками</div>
       <div>🌙 Изредка (2% шанс на волну, и гарантированно на волнах 10/30/50/75/100) наступает ночная волна — из тьмы выходят зомби-волки</div>
       <div>🗺️ Каждые 20 волн меняется местность — лес → посёлок → город в руинах — и по кругу дальше</div>
+      </details>
     </div>
     <button class="big-btn" id="startBtn">Далее →</button>
     <button class="big-btn" id="campBtn" style="margin-top:10px;background:#2b2418;border-color:#8a6a42;">🏕️ Лагерь выжившего</button>
@@ -629,15 +669,20 @@
   const BIOMES = [
     { id:'forest', name:'Лес', bg:'#141a0e',
       patchColors:['rgba(93,120,52,0.16)','rgba(138,59,42,0.09)','rgba(168,159,131,0.09)'],
-      weights:{grass:0.40, bush:0.20, rock:0.16, flower:0.14, tree:0.10, fence:0, crate:0, ruinWall:0},
+      weights:{grass:0.40, bush:0.20, rock:0.16, flower:0.14, tree:0.10, fence:0, crate:0, ruinWall:0, house:0, skyscraper:0, car:0},
       deadTreeChance:0.4, fogColor:'rgba(8,20,14,0.45)', warmGlow:'rgba(255,214,140,0.09)' },
+    // Посёлок — деревянные избы (свой архитектурный стиль, см. drawHouse),
+    // заборы, ящики. Никаких небоскрёбов/машин — до "нынешней цивилизации"
+    // тут ещё не дошло.
     { id:'settlement', name:'Посёлок', bg:'#3d2f14',
       patchColors:['rgba(150,120,80,0.18)','rgba(120,95,60,0.14)','rgba(90,100,55,0.1)'],
-      weights:{grass:0.22, bush:0.10, rock:0.09, flower:0.04, tree:0.13, fence:0.24, crate:0.16, ruinWall:0.02},
+      weights:{grass:0.16, bush:0.08, rock:0.07, flower:0.03, tree:0.11, fence:0.19, crate:0.13, ruinWall:0.01, house:0.22, skyscraper:0, car:0},
       deadTreeChance:0.5, fogColor:'rgba(80,55,20,0.38)', warmGlow:'rgba(255,190,110,0.1)' },
+    // Город — совсем другой стиль: небоскрёбы (drawSkyscraper) и брошенные
+    // машины на дорогах (drawCar + generateCityRoads), а не деревянные избы.
     { id:'city', name:'Город', bg:'#282e33',
       patchColors:['rgba(110,115,120,0.18)','rgba(70,90,60,0.16)','rgba(50,52,55,0.14)'],
-      weights:{grass:0.10, bush:0.08, rock:0.14, flower:0.02, tree:0.08, fence:0.03, crate:0.10, ruinWall:0.45},
+      weights:{grass:0.06, bush:0.05, rock:0.09, flower:0.01, tree:0.05, fence:0.02, crate:0.06, ruinWall:0.24, house:0, skyscraper:0.22, car:0.20},
       deadTreeChance:0.85, fogColor:'rgba(45,65,55,0.42)', warmGlow:'rgba(140,220,160,0.09)' },
   ];
   function biomeIndexForWave(w){
@@ -645,6 +690,24 @@
     return Math.floor((wave-1)/20) % BIOMES.length;
   }
   let currentBiomeIdx = 0;
+  // Прямые дороги для города — отдельный слой (не точечная декорация, а
+  // линии через всю карту), генерируется вместе с остальным при смене
+  // биома, но рисуется отдельным проходом ДО декораций (см. drawBackground).
+  let cityRoads = [];
+  function generateCityRoads(){
+    cityRoads = [];
+    const roadCount = 3+Math.floor(Math.random()*2);
+    for(let i=0;i<roadCount;i++){
+      const width = 70+Math.random()*22;
+      if(Math.random()<0.5){
+        const y = 220+Math.random()*(WORLD_H-440);
+        cityRoads.push({x1:0, y1:y, x2:WORLD_W, y2:y, width});
+      } else {
+        const x = 220+Math.random()*(WORLD_W-440);
+        cityRoads.push({x1:x, y1:0, x2:x, y2:WORLD_H, width});
+      }
+    }
+  }
 
   // Строит контур органичного (не идеально круглого) пятна вокруг центра —
   // применяется для кустов, крон деревьев и земляных пятен, чтобы они не
@@ -658,8 +721,33 @@
     }
     return pts;
   }
+  // Лианы для стен/домов/небоскрёбов — общая генерация (используется и в
+  // ruinWall, и в house, и в skyscraper), чтобы не дублировать одну и ту же
+  // математику трижды. amount 0..1 — насколько сильно объект зарос.
+  function buildVines(w, h, amount, baseY, topSpan){
+    const vines = [];
+    if(amount<=0.15) return vines;
+    const vineCount = 1+Math.floor(amount*4);
+    for(let v=0;v<vineCount;v++){
+      const vx = -w/2 + (w/(vineCount+1))*(v+1) + (Math.random()-0.5)*6;
+      const topY = baseY - (topSpan||h)*(0.15+amount*0.5);
+      const midX = vx + (Math.random()-0.5)*14;
+      const leaves = [];
+      const leafCount = 4+Math.floor(Math.random()*2);
+      for(let leaf=0; leaf<leafCount; leaf++){
+        const t = leaf/(leafCount-1||1);
+        leaves.push({
+          x: vx + (midX-vx)*t*0.6 + (Math.random()-0.5)*4,
+          y: baseY + (topY-baseY)*t,
+          rot: Math.random()*Math.PI
+        });
+      }
+      vines.push({ vx, baseY, midX, topY, leaves });
+    }
+    return vines;
+  }
   function pickDecoTypeForBiome(biome){
-    const order = ['grass','bush','rock','flower','tree','fence','crate','ruinWall'];
+    const order = ['grass','bush','rock','flower','tree','fence','crate','ruinWall','house','skyscraper','car'];
     const roll = Math.random();
     let acc = 0;
     for(const t of order){ acc += biome.weights[t]||0; if(roll<acc) return t; }
@@ -667,6 +755,8 @@
   }
   function generateWorldDressing(biome){
     biome = biome || BIOMES[currentBiomeIdx];
+    // Дороги — только в городе; в остальных биомах их не существует.
+    if(biome.id==='city') generateCityRoads(); else cityRoads=[];
     groundPatches = [];
     const patchCount = clamp(Math.round((WORLD_W*WORLD_H)/90000), 40, 260);
     for(let i=0;i<patchCount;i++){
@@ -799,24 +889,70 @@
             d.shards.push({ sx, sy, ex: sx+(Math.random()-0.5)*8, ey: sy+Math.random()*8 });
           }
         }
-        d.vines = [];
-        if(d.vineAmount>0.15){
-          const vineCount = 1+Math.floor(d.vineAmount*3);
-          for(let v=0;v<vineCount;v++){
-            const vx = -d.w/2 + (d.w/(vineCount+1))*(v+1) + (Math.random()-0.5)*6;
-            const topY = -d.h*(0.15+d.vineAmount*0.35);
-            const midX = vx + (Math.random()-0.5)*14;
-            const leaves = [];
-            for(let leaf=0; leaf<5; leaf++){
-              const t = leaf/4;
-              leaves.push({
-                x: vx + (midX-vx)*t*0.6 + (Math.random()-0.5)*4,
-                y: d.h*0.3 + (topY-d.h*0.3)*t,
-                rot: Math.random()*Math.PI
-              });
-            }
-            d.vines.push({ vx, midX, topY, leaves });
+        d.vines = buildVines(d.w, d.h, d.vineAmount, d.h*0.3, d.h*0.35/0.5);
+      }
+      // Дом в посёлке — деревянная изба со своим стилем (стены, крыша,
+      // дверь, окна), заметно отличается от городских небоскрёбов.
+      else if(type==='house'){
+        d.w = 60+Math.random()*30;
+        d.h = 44+Math.random()*18;
+        d.roofH = 24+Math.random()*12;
+        d.tilt = (Math.random()-0.5)*0.08;
+        d.tone = Math.random();
+        d.doorSide = Math.random()<0.5 ? -1 : 1;
+        d.doorBroken = Math.random()<0.4;
+        d.roofMoss = Math.random()<0.5;
+        d.windows = [];
+        const wn = 1+Math.floor(Math.random()*2);
+        for(let k=0;k<wn;k++){
+          d.windows.push({ x:(0.15+Math.random()*0.2)*d.w*(Math.random()<0.5?-1:1), broken: Math.random()<0.55 });
+        }
+        d.vineAmount = Math.random()*0.75;
+        d.vines = buildVines(d.w, d.h, d.vineAmount, d.h*0.32, d.h*0.9);
+      }
+      // Небоскрёб в городе — высокая многоэтажная застройка с сеткой окон
+      // (часть тёмных/выбитых), рухнувшей верхушкой и сильным заростом
+      // лианами — совсем другой масштаб и стиль, чем деревенская изба.
+      else if(type==='skyscraper'){
+        d.w = 66+Math.random()*36;
+        d.h = 150+Math.random()*130;
+        d.tilt = (Math.random()-0.5)*0.05;
+        d.tone = Math.random();
+        d.floors = 5+Math.floor(d.h/22);
+        d.windowsPerFloor = 3+Math.floor(d.w/22);
+        d.darkWindows = {};
+        for(let f=0; f<d.floors; f++){
+          for(let c=0; c<d.windowsPerFloor; c++){
+            if(Math.random()<0.4) d.darkWindows[f+'_'+c] = true;
           }
+        }
+        d.collapsedTop = Math.random()<0.5;
+        d.vineAmount = 0.3+Math.random()*0.65;
+        d.vines = buildVines(d.w, d.h, d.vineAmount, d.h*0.34, d.h*0.85);
+      }
+      // Брошенная/разбитая машина — точечная декорация города, часть из
+      // них расставляется прямо на сгенерированных дорогах (см. ниже, ветка
+      // сдвига координат по cityRoads).
+      else if(type==='car'){
+        d.w = 22+Math.random()*7;
+        d.h = 40+Math.random()*11;
+        d.rot = Math.random()*Math.PI*2;
+        d.tone = Math.random();
+        d.burnt = Math.random()<0.3;
+        d.overturned = Math.random()<0.22;
+        d.dents = [];
+        const dn = 2+Math.floor(Math.random()*3);
+        for(let k=0;k<dn;k++) d.dents.push({ x:(Math.random()-0.5)*d.w*0.6, y:(Math.random()-0.5)*d.h*0.6, rx:3+Math.random()*3, ry:2+Math.random()*2, rot:Math.random()*Math.PI });
+        // Часть машин ставим прямо на дорогу, а не в случайную точку карты
+        if(cityRoads.length && Math.random()<0.7){
+          const road = cityRoads[Math.floor(Math.random()*cityRoads.length)];
+          const t = Math.random();
+          const rx = road.x1 + (road.x2-road.x1)*t;
+          const ry = road.y1 + (road.y2-road.y1)*t;
+          const perpAngle = Math.atan2(road.y2-road.y1, road.x2-road.x1) + Math.PI/2;
+          const offset = (Math.random()-0.5)*road.width*0.7;
+          d.x = rx + Math.cos(perpAngle)*offset;
+          d.y = ry + Math.sin(perpAngle)*offset;
         }
       }
       decorations.push(d);
@@ -3061,6 +3197,7 @@
 
     ctx.fillStyle = biome.bg;
     ctx.fillRect(0,0,WORLD_W,WORLD_H);
+    drawCityRoads();
     drawGroundPatches();
     drawGroundLitter();
     // Сетка сильно приглушена — служит лишь слабым ориентиром масштаба,
@@ -3392,6 +3529,24 @@
   // биома "Город". Вся "случайность" (осколки, изгиб лиан) уже посчитана
   // один раз в generateWorldDressing(), здесь только детерминированная
   // отрисовка — иначе стена бы "мерцала" каждый кадр.
+  // Общая отрисовка лиан (используется ruinWall/house/skyscraper) — сама
+  // генерация в buildVines(), здесь только детерминированная отрисовка.
+  function drawVines(vines){
+    if(!vines || !vines.length) return;
+    ctx.strokeStyle = '#3d6b2e';
+    ctx.lineWidth = 1.6;
+    vines.forEach(vine=>{
+      ctx.beginPath();
+      ctx.moveTo(vine.vx, vine.baseY);
+      ctx.quadraticCurveTo(vine.midX, (vine.baseY+vine.topY)/2, vine.vx, vine.topY);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(90,150,60,0.85)';
+      vine.leaves.forEach(leaf=>{
+        ctx.beginPath(); ctx.ellipse(leaf.x, leaf.y, 2.6,1.6, leaf.rot, 0, Math.PI*2); ctx.fill();
+      });
+    });
+  }
+
   function drawRuinWall(d){
     ctx.save();
     ctx.translate(d.x, d.y);
@@ -3432,21 +3587,198 @@
       ctx.fillRect(-winW/2, winY, winW, winH);
     }
 
-    if(d.vines.length){
-      ctx.strokeStyle = '#3d6b2e';
-      ctx.lineWidth = 1.6;
-      d.vines.forEach(vine=>{
-        ctx.beginPath();
-        ctx.moveTo(vine.vx, d.h*0.3);
-        ctx.quadraticCurveTo(vine.midX, (d.h*0.3+vine.topY)/2, vine.vx, vine.topY);
-        ctx.stroke();
-        ctx.fillStyle = 'rgba(90,150,60,0.85)';
-        vine.leaves.forEach(leaf=>{
-          ctx.beginPath(); ctx.ellipse(leaf.x, leaf.y, 2.6,1.6, leaf.rot, 0, Math.PI*2); ctx.fill();
-        });
-      });
+    drawVines(d.vines);
+    ctx.restore();
+  }
+
+  // Деревянная изба посёлка — сруб с горизонтальными брёвнами, двускатная
+  // крыша, дверь (иногда выбитая), окна (часть разбитых), лианы. Стиль
+  // намеренно совсем другой, чем у городских небоскрёбов ниже.
+  function drawHouse(d){
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.rotate(d.tilt);
+    ctx.beginPath(); ctx.ellipse(2, d.h*0.55, d.w*0.62, d.w*0.22, 0,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.fill();
+
+    const wallGrad = ctx.createLinearGradient(-d.w/2,0,d.w/2,0);
+    const base = d.tone>0.5 ? '#8a6a42' : '#6b4f30';
+    wallGrad.addColorStop(0, base); wallGrad.addColorStop(1, '#3f2c18');
+    ctx.beginPath();
+    ctx.rect(-d.w/2, -d.h*0.5, d.w, d.h);
+    ctx.fillStyle = wallGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 0.7;
+    for(let yy=-d.h*0.45; yy<d.h*0.5; yy+=7){
+      ctx.beginPath(); ctx.moveTo(-d.w/2+1, yy); ctx.lineTo(d.w/2-1, yy); ctx.stroke();
+    }
+
+    const roofGrad = ctx.createLinearGradient(-d.w*0.6,0,d.w*0.6,0);
+    roofGrad.addColorStop(0, d.roofMoss ? '#4a5a34' : '#7a3a2a');
+    roofGrad.addColorStop(1, d.roofMoss ? '#2a3420' : '#4a2015');
+    ctx.beginPath();
+    ctx.moveTo(-d.w*0.62, -d.h*0.5);
+    ctx.lineTo(0, -d.h*0.5-d.roofH);
+    ctx.lineTo(d.w*0.62, -d.h*0.5);
+    ctx.lineTo(d.w*0.5, -d.h*0.5+4);
+    ctx.lineTo(-d.w*0.5, -d.h*0.5+4);
+    ctx.closePath();
+    ctx.fillStyle = roofGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 1; ctx.stroke();
+
+    const doorW = d.w*0.16, doorH = d.h*0.42;
+    const doorX = d.doorSide*d.w*0.28 - doorW/2;
+    if(!d.doorBroken){
+      ctx.fillStyle = '#2c1c0e';
+      ctx.fillRect(doorX, d.h*0.08, doorW, doorH);
+      ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=0.8;
+      ctx.strokeRect(doorX, d.h*0.08, doorW, doorH);
+    } else {
+      ctx.fillStyle = 'rgba(10,8,6,0.65)';
+      ctx.fillRect(doorX, d.h*0.08, doorW, doorH);
+      ctx.save();
+      ctx.translate(doorX, d.h*0.08+doorH*0.5);
+      ctx.rotate(0.5);
+      ctx.fillStyle = '#2c1c0e';
+      ctx.fillRect(-doorW*0.1, -doorH*0.5, doorW*0.9, doorH*0.9);
+      ctx.restore();
+    }
+
+    d.windows.forEach(w=>{
+      const wx = w.x, wy = -d.h*0.12, ws = d.w*0.14;
+      ctx.fillStyle = '#0c0c0a';
+      ctx.fillRect(wx-ws/2, wy-ws/2, ws, ws);
+      if(!w.broken){
+        ctx.fillStyle = 'rgba(150,190,200,0.22)';
+        ctx.fillRect(wx-ws/2, wy-ws/2, ws, ws);
+      } else {
+        ctx.strokeStyle = 'rgba(180,195,200,0.4)'; ctx.lineWidth=0.7;
+        ctx.beginPath(); ctx.moveTo(wx-ws/2,wy-ws/2); ctx.lineTo(wx+ws/2,wy+ws/2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(wx+ws/2,wy-ws/2); ctx.lineTo(wx-ws/2,wy+ws/2); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 0.8;
+      ctx.strokeRect(wx-ws/2, wy-ws/2, ws, ws);
+    });
+
+    drawVines(d.vines);
+    ctx.restore();
+  }
+
+  // Городской небоскрёб — совсем другой масштаб и стиль: сетка окон (часть
+  // тёмных), возможна обвалившаяся неровная верхушка, сильный зарост
+  // лианами. Ничего общего с деревенской избой выше.
+  function drawSkyscraper(d){
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.rotate(d.tilt);
+    ctx.beginPath(); ctx.ellipse(3, d.h*0.5, d.w*0.6, d.w*0.24, 0,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.36)'; ctx.fill();
+
+    const wallGrad = ctx.createLinearGradient(-d.w/2,0,d.w/2,0);
+    const base = d.tone>0.5 ? '#565c62' : '#3c4247';
+    wallGrad.addColorStop(0, base); wallGrad.addColorStop(1, '#1e2124');
+
+    ctx.beginPath();
+    if(d.collapsedTop){
+      ctx.moveTo(-d.w/2, d.h*0.5);
+      ctx.lineTo(-d.w/2, -d.h*0.5+d.h*0.08);
+      ctx.lineTo(-d.w*0.15, -d.h*0.5);
+      ctx.lineTo(d.w*0.05, -d.h*0.5+d.h*0.05);
+      ctx.lineTo(d.w*0.32, -d.h*0.5-d.h*0.04);
+      ctx.lineTo(d.w/2, -d.h*0.5+d.h*0.1);
+      ctx.lineTo(d.w/2, d.h*0.5);
+      ctx.closePath();
+    } else {
+      ctx.rect(-d.w/2, -d.h*0.5, d.w, d.h);
+    }
+    ctx.fillStyle = wallGrad; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+    const floorH = d.h/d.floors;
+    const colW = d.w/d.windowsPerFloor;
+    for(let f=0; f<d.floors; f++){
+      const wy = -d.h*0.5 + floorH*f + floorH*0.5;
+      if(wy < -d.h*0.5+2) continue;
+      for(let c=0; c<d.windowsPerFloor; c++){
+        const wx = -d.w/2 + colW*c + colW*0.5;
+        const dark = !!d.darkWindows[f+'_'+c];
+        ctx.fillStyle = dark ? 'rgba(6,6,8,0.85)' : 'rgba(140,180,210,0.28)';
+        const ww = colW*0.62, wh = floorH*0.5;
+        ctx.fillRect(wx-ww/2, wy-wh/2, ww, wh);
+      }
+    }
+
+    drawVines(d.vines);
+    ctx.restore();
+  }
+
+  // Брошенная машина — топ-даун силуэт кузова, лобовое/заднее стекло,
+  // вмятины/ржавчина (посчитаны один раз при генерации — d.dents), иногда
+  // перевёрнутая или обгоревшая.
+  function drawCar(d){
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.rotate(d.rot);
+    ctx.beginPath(); ctx.ellipse(1, d.h*0.06, d.w*0.65, d.h*0.55, 0,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.fill();
+
+    const bodyColor = d.overturned ? '#33312c' : (d.burnt ? '#241f1a' : (d.tone>0.5 ? '#7a3030' : '#3a4a6b'));
+    const grad = ctx.createLinearGradient(-d.w/2,0,d.w/2,0);
+    grad.addColorStop(0, lighten(bodyColor,-15));
+    grad.addColorStop(0.5, bodyColor);
+    grad.addColorStop(1, lighten(bodyColor,-15));
+
+    ctx.beginPath();
+    ctx.moveTo(-d.w*0.5, -d.h*0.4);
+    ctx.quadraticCurveTo(-d.w*0.5, -d.h*0.5, -d.w*0.3, -d.h*0.5);
+    ctx.lineTo(d.w*0.3, -d.h*0.5);
+    ctx.quadraticCurveTo(d.w*0.5, -d.h*0.5, d.w*0.5, -d.h*0.4);
+    ctx.lineTo(d.w*0.5, d.h*0.4);
+    ctx.quadraticCurveTo(d.w*0.5, d.h*0.5, d.w*0.3, d.h*0.5);
+    ctx.lineTo(-d.w*0.3, d.h*0.5);
+    ctx.quadraticCurveTo(-d.w*0.5, d.h*0.5, -d.w*0.5, d.h*0.4);
+    ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+
+    if(!d.overturned){
+      ctx.fillStyle = 'rgba(20,24,26,0.7)';
+      ctx.fillRect(-d.w*0.32, -d.h*0.3, d.w*0.64, d.h*0.16);
+      ctx.fillRect(-d.w*0.32, d.h*0.14, d.w*0.64, d.h*0.16);
+    } else {
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(-d.w*0.45,-d.h*0.3); ctx.lineTo(d.w*0.45,-d.h*0.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-d.w*0.45,d.h*0.3); ctx.lineTo(d.w*0.45,d.h*0.3); ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    d.dents.forEach(dt=>{
+      ctx.beginPath(); ctx.ellipse(dt.x, dt.y, dt.rx, dt.ry, dt.rot, 0, Math.PI*2); ctx.fill();
+    });
+    if(d.burnt){
+      ctx.fillStyle = 'rgba(15,10,8,0.5)';
+      ctx.beginPath(); ctx.ellipse(0,0,d.w*0.4,d.h*0.4,0,0,Math.PI*2); ctx.fill();
     }
     ctx.restore();
+  }
+
+  // Дороги города — рисуются ДО декораций (см. drawBackground), отдельным
+  // слоем поверх заливки фона.
+  function drawCityRoads(){
+    if(!cityRoads.length) return;
+    cityRoads.forEach(r=>{
+      ctx.save();
+      ctx.strokeStyle = '#232527';
+      ctx.lineWidth = r.width;
+      ctx.lineCap = 'butt';
+      ctx.beginPath(); ctx.moveTo(r.x1,r.y1); ctx.lineTo(r.x2,r.y2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(220,200,120,0.35)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([18,14]);
+      ctx.beginPath(); ctx.moveTo(r.x1,r.y1); ctx.lineTo(r.x2,r.y2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    });
   }
 
   function drawDecorations(){
@@ -3464,6 +3796,9 @@
         case 'fence': drawFence(d); break;
         case 'crate': drawCrate(d); break;
         case 'ruinWall': drawRuinWall(d); break;
+        case 'house': drawHouse(d); break;
+        case 'skyscraper': drawSkyscraper(d); break;
+        case 'car': drawCar(d); break;
       }
     }
   }
