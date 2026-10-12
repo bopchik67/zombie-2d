@@ -363,15 +363,15 @@
               <div class="coop-hint">Дальше ничего делать не нужно — как только друг введёт код у себя, игра подключится сама.</div>
             </div>
           </div>
-          <button class="coop-back-btn" id="hostToAdvancedBtn" style="margin-top:10px;">Не подключается? Продвинутый режим (2 кода вручную) →</button>
+          <button class="coop-back-btn" id="hostToAdvancedBtn" style="margin-top:10px;">Не подключается? Режим по ссылке (без сервера) →</button>
         </div>
 
-        <!-- Продвинутый режим: старый проверенный способ на случай, если
-             брокер недоступен из вашей сети — ручной обмен двумя кодами
-             напрямую, вообще без стороннего сервиса. -->
+        <!-- Режим по ссылке: работает вообще без стороннего сервиса. Хост
+             отправляет другу ссылку-приглашение, друг открывает её (всё
+             подставляется само) и присылает ответную ссылку обратно. -->
         <div id="hostAdvancedMode" class="hidden">
           <button class="coop-back-btn" id="hostToQuickBtn">← Обратно к быстрому режиму</button>
-          <div class="coop-step">
+          <div class="coop-step" id="hostStep0">
             <div class="coop-step-badge">1</div>
             <div class="coop-step-body">
               <div class="coop-step-title">Создайте комнату</div>
@@ -380,20 +380,22 @@
           </div>
 
           <div class="coop-step hidden" id="hostStep1Result">
-            <div class="coop-step-badge">✓</div>
+            <div class="coop-step-badge">1</div>
             <div class="coop-step-body">
-              <div class="coop-step-title">Отправьте этот код другу (в любом мессенджере)</div>
+              <div class="coop-step-title">Отправьте эту ссылку другу (Telegram, WhatsApp — любой мессенджер)</div>
               <textarea class="coop-textarea" id="hostCodeOut" readonly></textarea>
-              <button class="coop-btn" id="copyHostCodeBtn">📋 Скопировать код</button>
+              <button class="coop-btn hidden" id="shareHostBtn">📤 Поделиться ссылкой</button>
+              <button class="coop-btn" id="copyHostCodeBtn">📋 Скопировать ссылку</button>
             </div>
           </div>
 
           <div class="coop-step hidden" id="hostStep2">
             <div class="coop-step-badge">2</div>
             <div class="coop-step-body">
-              <div class="coop-step-title">Друг пришлёт код в ответ — вставьте его сюда</div>
-              <textarea class="coop-textarea" id="hostAnswerIn" placeholder="Код ответа от друга"></textarea>
-              <button class="coop-btn" id="hostConnectBtn">Подключиться</button>
+              <div class="coop-step-title">Друг пришлёт ответную ссылку. Нажмите на неё в том же браузере — или скопируйте и нажмите кнопку ниже</div>
+              <button class="coop-btn" id="hostPasteBtn">📥 Вставить ответ из буфера</button>
+              <textarea class="coop-textarea" id="hostAnswerIn" placeholder="…или вставьте ответ сюда — подключится само" style="margin-top:8px;"></textarea>
+              <button class="coop-btn" id="hostConnectBtn" style="background:#3a3a30;color:#d8cfb0;">Подключиться вручную</button>
             </div>
           </div>
         </div>
@@ -414,7 +416,7 @@
               </div>
             </div>
           </div>
-          <button class="coop-back-btn" id="joinToAdvancedBtn" style="margin-top:10px;">Не подключается? Продвинутый режим (2 кода вручную) →</button>
+          <button class="coop-back-btn" id="joinToAdvancedBtn" style="margin-top:10px;">Не подключается? Режим по ссылке (без сервера) →</button>
         </div>
 
         <div id="joinAdvancedMode" class="hidden">
@@ -422,22 +424,30 @@
           <div class="coop-step">
             <div class="coop-step-badge">1</div>
             <div class="coop-step-body">
-              <div class="coop-step-title">Вставьте код комнаты, который прислал хост</div>
-              <textarea class="coop-textarea" id="coopCode" placeholder="Код комнаты от хоста"></textarea>
-              <button class="coop-btn" id="joinCoopBtn">Войти по коду</button>
+              <div class="coop-step-title">Откройте ссылку, которую прислал хост — всё заполнится само. Или скопируйте её и нажмите кнопку</div>
+              <button class="coop-btn" id="joinPasteBtn">📥 Вставить приглашение из буфера</button>
+              <textarea class="coop-textarea" id="coopCode" placeholder="…или вставьте приглашение сюда — подключится само" style="margin-top:8px;"></textarea>
+              <button class="coop-btn" id="joinCoopBtn" style="background:#3a3a30;color:#d8cfb0;">Войти вручную</button>
             </div>
           </div>
 
           <div class="coop-step hidden" id="joinStep2">
             <div class="coop-step-badge">2</div>
             <div class="coop-step-body">
-              <div class="coop-step-title">Отправьте этот код ответа хосту</div>
+              <div class="coop-step-title">Отправьте эту ответную ссылку хосту</div>
               <textarea class="coop-textarea" id="joinAnswerOut" readonly></textarea>
-              <button class="coop-btn" id="copyJoinAnswerBtn">📋 Скопировать код ответа</button>
-              <div class="coop-hint">Дальше просто подождите — хост вставит код у себя, и игра начнётся сама.</div>
+              <button class="coop-btn hidden" id="shareJoinBtn">📤 Поделиться ответом</button>
+              <button class="coop-btn" id="copyJoinAnswerBtn">📋 Скопировать ответ</button>
+              <div class="coop-hint">Дальше просто подождите — как только хост откроет ответ у себя, игра начнётся сама.</div>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Показывается, если эта вкладка открыта по ссылке-ответу от друга -->
+      <div id="linkNotice" class="hidden">
+        <div class="coop-hint" id="linkNoticeText" style="font-size:14px;color:#d8cfb0;"></div>
+        <button class="coop-btn hidden" id="linkNoticeCopyBtn">📋 Скопировать ответ</button>
       </div>
 
       <div class="coop-status" id="coopStatus">Выберите, кто вы, чтобы увидеть нужные шаги.</div>
@@ -588,6 +598,14 @@
   const closeCoopBtn = document.getElementById('closeCoopBtn');
   const coopCode = document.getElementById('coopCode');
   const coopStatus = document.getElementById('coopStatus');
+  const hostStep0 = document.getElementById('hostStep0');
+  const hostPasteBtn = document.getElementById('hostPasteBtn');
+  const joinPasteBtn = document.getElementById('joinPasteBtn');
+  const shareHostBtn = document.getElementById('shareHostBtn');
+  const shareJoinBtn = document.getElementById('shareJoinBtn');
+  const linkNotice = document.getElementById('linkNotice');
+  const linkNoticeText = document.getElementById('linkNoticeText');
+  const linkNoticeCopyBtn = document.getElementById('linkNoticeCopyBtn');
   const hostStep1Result = document.getElementById('hostStep1Result');
   const hostCodeOut = document.getElementById('hostCodeOut');
   const copyHostCodeBtn = document.getElementById('copyHostCodeBtn');
@@ -1337,7 +1355,8 @@
 
   // Серверы ретрансляции. ПОРЯДОК ВАЖЕН: личный аккаунт Metered — основной
   // (поддерживает TCP и TLS на порту 443 — это единственный шанс, если у
-  // оператора режется UDP), общий бесплатный Open Relay — запасной.
+  // оператора режется UDP). Общий Open Relay убран: из России он не отвечает
+  // и только замедлял установку связи.
   // Cloudflare STUN убран намеренно: Cloudflare в России замедляется.
   // Лимит личного аккаунта — 500 МБ/мес, поэтому при ретрансляции игра
   // автоматически шлёт данные реже (см. netRelaySaving).
@@ -1354,7 +1373,6 @@
       { urls: 'stun:stun.relay.metered.ca:80' },
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: Object.values(TURN_URLS), username: TURN_USER, credential: TURN_PASS },
-      { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' },
     ],
     // Начинаем собирать ICE-кандидаты заранее, не дожидаясь первого вызова —
     // немного ускоряет установку соединения.
@@ -1518,7 +1536,6 @@
       probeIce('Ретранслятор UDP :443', [{urls:TURN_URLS.udp443, ...cred}], 'relay', 'relay', 8000),
       probeIce('Ретранслятор TCP :80',  [{urls:TURN_URLS.tcp80,  ...cred}], 'relay', 'relay', 8000),
       probeIce('Ретранслятор TLS :443', [{urls:TURN_URLS.tls443, ...cred}], 'relay', 'relay', 8000),
-      probeIce('Запасной Open Relay',   [{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443?transport=tcp'], username:'openrelayproject', credential:'openrelayproject'}], 'relay', 'relay', 8000),
       probeSignaling(7000),
     ];
     const res = await Promise.all(jobs);
@@ -1528,9 +1545,8 @@
     let verdict;
     if(ok(0)) verdict = 'Прямая связь возможна — это лучший вариант, трафик не тратится.';
     else if(anyRelay) verdict = 'Прямая связь недоступна (возможно, UDP режется), но ретранслятор работает — игра пойдёт через него, чуть медленнее.';
-    else if(ok(5)) verdict = 'Личный ретранслятор недоступен, но запасной Open Relay отвечает.';
     else verdict = 'Ни прямая связь, ни ретрансляторы не отвечают. Попробуйте другую сеть (Wi-Fi вместо мобильного или наоборот).';
-    if(!ok(6)) verdict += ' Сервер быстрого режима недоступен — используйте «Продвинутый режим» (обмен двумя кодами).';
+    if(!ok(5)) verdict += ' Сервер быстрого режима недоступен — используйте «Режим по ссылке» (обмен ссылками, без сервера).';
     netTestResultEl.textContent = lines.join('\n') + '\n\n' + verdict;
     netTestRunning = false; netTestBtn.disabled = false;
   }
@@ -1549,11 +1565,66 @@
       setTimeout(()=>{ if(!done){ done=true; peerConn.removeEventListener('icegatheringstatechange',check); resolve(); } }, 4500);
     });
   }
-  function encodeDesc(desc){ return btoa(unescape(encodeURIComponent(JSON.stringify(desc)))); }
-  function decodeDesc(str){ return JSON.parse(decodeURIComponent(escape(atob(str.trim())))); }
+  // ---------- Коды обмена: сжатие, ссылки ----------
+  // Данные соединения (SDP) сжимаются deflate и кодируются base64url — код
+  // получается в несколько раз короче прежнего и безопасен внутри ссылки.
+  // Формат: <o|a><z|r>.<данные>; o/a — приглашение/ответ, z/r — сжато/нет.
+  // Старые коды (чистый base64 без префикса) по-прежнему читаются.
+  function b64uEnc(bytes){
+    let s=''; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+    return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function b64uDec(str){
+    str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='=';
+    const bin=atob(str), out=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+    return out;
+  }
+  async function pipeBytes(bytes, transform){
+    const w=transform.writable.getWriter(); w.write(bytes); w.close();
+    return new Uint8Array(await new Response(transform.readable).arrayBuffer());
+  }
+  // TCP-кандидаты хоста почти никогда не нужны, а код удлиняют.
+  function slimSdp(sdp){
+    return sdp.split(/\r?\n/).filter(l=>l && !(l.startsWith('a=candidate:') && / tcp /i.test(l) && / typ host/.test(l))).join('\r\n')+'\r\n';
+  }
+  async function encodeDesc(desc){
+    const kind = desc.type==='offer' ? 'o' : 'a';
+    const bytes = new TextEncoder().encode(slimSdp(desc.sdp));
+    if(typeof CompressionStream!=='undefined'){
+      try{ return kind+'z.'+b64uEnc(await pipeBytes(bytes, new CompressionStream('deflate-raw'))); }catch(e){}
+    }
+    return kind+'r.'+b64uEnc(bytes);
+  }
+  // Достаёт код и из ссылки (…#join=КОД / …#answer=КОД), и из «голого» кода;
+  // пробелы и переносы строк (их любят добавлять мессенджеры) убираются.
+  function extractCode(raw){
+    const s=(raw||'').trim();
+    const m=s.match(/[#?&](?:join|answer)=([A-Za-z0-9_.\-]+)/);
+    return m ? m[1] : s.replace(/\s+/g,'');
+  }
+  function kindOfCode(raw){
+    const m=extractCode(raw).match(/^([oa])[zr]\./);
+    return m ? (m[1]==='o' ? 'offer' : 'answer') : null;
+  }
+  async function decodeDesc(raw){
+    const s=extractCode(raw);
+    const m=s.match(/^([oa])([zr])\.([A-Za-z0-9_-]+)$/);
+    if(m){
+      let bytes=b64uDec(m[3]);
+      if(m[2]==='z'){
+        if(typeof DecompressionStream==='undefined') throw new Error('браузер не умеет распаковывать код');
+        bytes=await pipeBytes(bytes, new DecompressionStream('deflate-raw'));
+      }
+      return { type: m[1]==='o' ? 'offer' : 'answer', sdp: new TextDecoder().decode(bytes) };
+    }
+    return JSON.parse(decodeURIComponent(escape(atob(s)))); // старый формат
+  }
+  function makeLink(kind, code){ return location.href.split('#')[0] + '#' + (kind==='offer' ? 'join' : 'answer') + '=' + code; }
 
   function resetCoopUI(){
     hostStep1Result.classList.add('hidden');
+    hostStep0.classList.remove('hidden');
     hostStep2.classList.add('hidden');
     joinStep2.classList.add('hidden');
     hostCodeOut.value=''; hostAnswerIn.value=''; joinAnswerOut.value=''; coopCode.value='';
@@ -1568,6 +1639,7 @@
   // Теперь сначала явно выбирается роль, и дальше показываются только
   // релевантные, честно пронумерованные шаги именно для неё.
   function showCoopRoleChoice(){
+    linkNotice.classList.add('hidden');
     coopRoleChoice.classList.remove('hidden');
     coopHostFlow.classList.add('hidden');
     coopJoinFlow.classList.add('hidden');
@@ -1581,6 +1653,30 @@
     // продвинутый и вернулись назад, начинаем заново с быстрого.
     if(role==='host'){ hostQuickMode.classList.remove('hidden'); hostAdvancedMode.classList.add('hidden'); }
     if(role==='join'){ joinQuickMode.classList.remove('hidden'); joinAdvancedMode.classList.add('hidden'); }
+    linkNotice.classList.add('hidden');
+    checkQuickAvailability();
+  }
+
+  // Если сервер быстрого режима (PeerJS) недоступен из этой сети, сразу
+  // переключаемся на режим по ссылке — он не зависит ни от каких серверов.
+  let quickOk = null, quickProbing = false;
+  function autoSwitchToLink(){
+    if(quickOk!==false || coopPanel.classList.contains('hidden')) return;
+    if(!coopHostFlow.classList.contains('hidden') && !hostQuickMode.classList.contains('hidden') && hostQuickResult.classList.contains('hidden')){
+      hostQuickMode.classList.add('hidden'); hostAdvancedMode.classList.remove('hidden');
+      setCoopStatus('Быстрый режим из этой сети недоступен — включил режим по ссылке (он работает без сервера).');
+      if(!pc) hostCoop();
+    } else if(!coopJoinFlow.classList.contains('hidden') && !joinQuickMode.classList.contains('hidden') && !joinQuickConnectBtn.disabled){
+      joinQuickMode.classList.add('hidden'); joinAdvancedMode.classList.remove('hidden');
+      setCoopStatus('Быстрый режим из этой сети недоступен — включил режим по ссылке. Откройте ссылку от хоста или вставьте её сюда.');
+    }
+  }
+  function checkQuickAvailability(){
+    if(quickOk!==null){ autoSwitchToLink(); return; }
+    if(quickProbing) return;
+    quickProbing = true;
+    const probe = (typeof Peer==='undefined') ? Promise.resolve({ok:false}) : probeSignaling(4500);
+    probe.then(r=>{ quickOk = !!r.ok; quickProbing = false; autoSwitchToLink(); });
   }
   // Раньше не было способа передумать и переключиться с "я хост" на "я
   // друг" (или наоборот), кроме перезагрузки страницы — начатое соединение
@@ -1605,7 +1701,7 @@
   // самом первом "созвоне" и не передаёт вообще никаких игровых данных,
   // поэтому на пинг во время игры это никак не влияет. Если брокер
   // недоступен (заблокирован в сети, перегружен) — ниже всегда есть
-  // "продвинутый режим", работающий совсем без стороннего сервиса.
+  // "режим по ссылке", работающий совсем без стороннего сервиса.
   let peerObj = null;
   function makeRoomCode(){
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // без похожих символов O/0, I/1
@@ -1638,7 +1734,7 @@
   }
   async function hostQuickCreate(){
     if(hostQuickCreateBtn.disabled) return;
-    if(typeof Peer==='undefined'){ setCoopStatus('Не удалось загрузить сервис быстрого подключения (проверьте интернет). Используйте продвинутый режим ниже.'); return; }
+    if(typeof Peer==='undefined'){ setCoopStatus('Не удалось загрузить сервис быстрого подключения (проверьте интернет). Используйте режим по ссылке ниже.'); return; }
     hostQuickCreateBtn.disabled = true;
     netMode='host';
     setCoopStatus('Создаю комнату...');
@@ -1657,17 +1753,17 @@
     try{
       peerObj = await tryCreate();
       peerObj.on('connection', dc=> setupPeerDataConn(dc));
-      peerObj.on('error', err=>{ setCoopStatus('Ошибка быстрого режима: '+(err&&err.message||err)+'. Попробуйте продвинутый режим ниже.'); });
+      peerObj.on('error', err=>{ setCoopStatus('Ошибка быстрого режима: '+(err&&err.message||err)+'. Попробуйте режим по ссылке ниже.'); });
       hostQuickCode.textContent = peerObj.id;
       hostQuickResult.classList.remove('hidden');
       setCoopStatus('Код готов ниже. Отправьте его другу — дальше ничего делать не нужно, игра подключится сама.');
     } catch(e){
-      setCoopStatus('Не удалось создать комнату быстрым способом ('+(e&&e.message||e)+'). Попробуйте продвинутый режим ниже.');
+      setCoopStatus('Не удалось создать комнату быстрым способом ('+(e&&e.message||e)+'). Попробуйте режим по ссылке ниже.');
     } finally { hostQuickCreateBtn.disabled = false; }
   }
   async function joinQuickConnect(){
     if(joinQuickConnectBtn.disabled) return;
-    if(typeof Peer==='undefined'){ setCoopStatus('Не удалось загрузить сервис быстрого подключения (проверьте интернет). Используйте продвинутый режим ниже.'); return; }
+    if(typeof Peer==='undefined'){ setCoopStatus('Не удалось загрузить сервис быстрого подключения (проверьте интернет). Используйте режим по ссылке ниже.'); return; }
     const code = joinQuickCodeInput.value.trim().toUpperCase();
     if(!code) return setCoopStatus('Введите код комнаты от хоста.');
     joinQuickConnectBtn.disabled = true;
@@ -1684,10 +1780,10 @@
       const dcFast = peerObj.connect(code, { label:'fast', reliable:false, serialization:'json' });
       setupPeerDataConn(dcGame);
       setupPeerDataConn(dcFast);
-      peerObj.on('error', err=>{ setCoopStatus('Ошибка: '+(err&&err.message||err)+'. Проверьте код или попробуйте продвинутый режим ниже.'); });
+      peerObj.on('error', err=>{ setCoopStatus('Ошибка: '+(err&&err.message||err)+'. Проверьте код или попробуйте режим по ссылке ниже.'); });
       setCoopStatus('Подключаюсь к другу...');
     } catch(e){
-      setCoopStatus('Не удалось подключиться быстрым способом ('+(e&&e.message||e)+'). Проверьте код или попробуйте продвинутый режим ниже.');
+      setCoopStatus('Не удалось подключиться быстрым способом ('+(e&&e.message||e)+'). Проверьте код или попробуйте режим по ссылке ниже.');
     } finally { joinQuickConnectBtn.disabled = false; }
   }
 
@@ -1731,14 +1827,39 @@
     if(isFast) connFast=channel; else conn=channel;
   }
 
+  function closeOldPc(){
+    if(pc){ try{ pc.close(); }catch(e){} pc=null; }
+    netPeerConns.length=0;
+  }
+
+  // Если ссылку-ответ открыли в другой вкладке того же браузера, эта вкладка
+  // получает ответ напрямую и подключается сама (BroadcastChannel).
+  let sigChan = null;
+  function startSigChannel(){
+    if(sigChan || typeof BroadcastChannel==='undefined') return;
+    try{
+      sigChan = new BroadcastChannel('orda-signal');
+      sigChan.onmessage = (e)=>{
+        const d = e.data || {};
+        if(d.k==='answer' && netMode==='host' && pc && pc.signalingState==='have-local-offer' && kindOfCode(d.code)==='answer'){
+          hostAnswerIn.value = d.code;
+          try{ sigChan.postMessage({k:'ack'}); }catch(err){}
+          hostConnect();
+        }
+      };
+    }catch(e){ sigChan=null; }
+  }
+
   async function hostCoop(){
     if(hostCoopBtn.disabled) return;
     hostCoopBtn.disabled = true;
     netMode='host'; coopPanel.classList.remove('hidden'); resetCoopUI();
     setCoopStatus('Создаю комнату...');
     try{
+      closeOldPc();
       pc = new RTCPeerConnection(ICE_CONFIG);
       attachConnectionDiagnostics(pc);
+      startSigChannel();
       // Два канала: "game" — надёжный (покупки/рестарт/пауза/тосты),
       // "fast" — без гарантий доставки и без порядка (снапшоты/ввод), см.
       // комментарий выше про ФИКС ЛАГА.
@@ -1747,10 +1868,11 @@
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       await waitIceComplete(pc);
-      hostCodeOut.value = encodeDesc(pc.localDescription);
+      hostCodeOut.value = makeLink('offer', await encodeDesc(pc.localDescription));
+      hostStep0.classList.add('hidden');
       hostStep1Result.classList.remove('hidden');
       hostStep2.classList.remove('hidden');
-      setCoopStatus('Код комнаты готов ниже (шаг 1). Скопируй и отправь другу — а когда он пришлёт код ответа, вставь его в шаге 2 и нажми «Подключиться».');
+      setCoopStatus('Ссылка-приглашение готова. Отправь её другу. Когда он пришлёт ответную ссылку — открой её здесь же или нажми «Вставить ответ из буфера».');
     } catch(e){ setCoopStatus('Не удалось создать комнату: '+(e.message||e)); }
     finally{ hostCoopBtn.disabled = false; }
   }
@@ -1758,13 +1880,15 @@
   async function joinCoop(){
     if(joinCoopBtn.disabled) return;
     const raw = coopCode.value.trim();
-    if(!raw) return setCoopStatus('Сначала вставь код комнаты от хоста.');
+    if(!raw) return setCoopStatus('Сначала вставь приглашение от хоста.');
+    if(kindOfCode(raw)==='answer') return setCoopStatus('Это ответная ссылка, а нужно приглашение от хоста. Ответную отправляют хосту, а не вставляют у себя.');
     let offerDesc;
-    try{ offerDesc = decodeDesc(raw); } catch(e){ return setCoopStatus('Не удалось прочитать код — проверь, что скопирован полностью.'); }
+    try{ offerDesc = await decodeDesc(raw); } catch(e){ return setCoopStatus('Не удалось прочитать приглашение — проверь, что оно скопировано полностью.'); }
     joinCoopBtn.disabled = true;
     netMode='client';
     setCoopStatus('Подключаюсь к комнате...');
     try{
+      closeOldPc();
       pc = new RTCPeerConnection(ICE_CONFIG);
       attachConnectionDiagnostics(pc);
       pc.ondatachannel = (e)=> setupDataChannel(e.channel);
@@ -1772,9 +1896,9 @@
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       await waitIceComplete(pc);
-      joinAnswerOut.value = encodeDesc(pc.localDescription);
+      joinAnswerOut.value = makeLink('answer', await encodeDesc(pc.localDescription));
       joinStep2.classList.remove('hidden');
-      setCoopStatus('Код ответа готов ниже (шаг 2). Скопируй его и отправь хосту — как только он вставит его у себя, игра начнётся сама.');
+      setCoopStatus('Ответ готов (шаг 2). Отправь его хосту — как только он откроет его у себя, игра начнётся сама.');
     } catch(e){ setCoopStatus('Не удалось прочитать код комнаты: '+(e.message||e)); }
     finally{ joinCoopBtn.disabled = false; }
   }
@@ -1784,9 +1908,10 @@
     if(pc.signalingState==='stable'){ setCoopStatus(remoteConnected?'Уже подключено — можно начинать игру.':'Код ответа уже применён, жду соединения...'); return; }
     if(pc.signalingState!=='have-local-offer'){ setCoopStatus('Сейчас нельзя применить код ответа (неверное состояние соединения). Попробуй пересоздать комнату.'); return; }
     const raw = hostAnswerIn.value.trim();
-    if(!raw) return setCoopStatus('Вставь код ответа от друга.');
+    if(!raw) return setCoopStatus('Вставь ответ от друга.');
+    if(kindOfCode(raw)==='offer') return setCoopStatus('Это приглашение (его отправляют другу), а нужен ответ от друга.');
     let answerDesc;
-    try{ answerDesc = decodeDesc(raw); } catch(e){ return setCoopStatus('Не удалось прочитать код ответа — проверь, что скопирован полностью.'); }
+    try{ answerDesc = await decodeDesc(raw); } catch(e){ return setCoopStatus('Не удалось прочитать ответ — проверь, что он скопирован полностью.'); }
     hostConnectBtn.disabled = true;
     try{
       await pc.setRemoteDescription(answerDesc);
@@ -4855,7 +4980,7 @@
   joinCoopBtn.addEventListener('click',joinCoop);
   hostConnectBtn.addEventListener('click',hostConnect);
 
-  hostToAdvancedBtn.addEventListener('click',()=>{ hostQuickMode.classList.add('hidden'); hostAdvancedMode.classList.remove('hidden'); });
+  hostToAdvancedBtn.addEventListener('click',()=>{ hostQuickMode.classList.add('hidden'); hostAdvancedMode.classList.remove('hidden'); if(!pc) hostCoop(); });
   hostToQuickBtn.addEventListener('click',()=>{ hostAdvancedMode.classList.add('hidden'); hostQuickMode.classList.remove('hidden'); });
   joinToAdvancedBtn.addEventListener('click',()=>{ joinQuickMode.classList.add('hidden'); joinAdvancedMode.classList.remove('hidden'); });
   joinToQuickBtn.addEventListener('click',()=>{ joinAdvancedMode.classList.add('hidden'); joinQuickMode.classList.remove('hidden'); });
@@ -4900,12 +5025,76 @@
   });
 
   copyHostCodeBtn.addEventListener('click',()=>{
-    copyTextFromField(hostCodeOut, 'Код скопирован — отправь его другу.', 'Не удалось скопировать автоматически.');
+    copyTextFromField(hostCodeOut, 'Ссылка скопирована — отправь её другу в мессенджере.', 'Не удалось скопировать автоматически.');
   });
   copyJoinAnswerBtn.addEventListener('click',()=>{
-    copyTextFromField(joinAnswerOut, 'Код ответа скопирован — отправь хосту.', 'Не удалось скопировать автоматически.');
+    copyTextFromField(joinAnswerOut, 'Ответ скопирован — отправь его хосту.', 'Не удалось скопировать автоматически.');
   });
   closeCoopBtn.addEventListener('click',()=>coopPanel.classList.add('hidden'));
+
+  // ---------- Режим по ссылке: вставка, поделиться, автоподключение ----------
+  async function pasteInto(el){
+    try{
+      const t = await navigator.clipboard.readText();
+      if(!t || !t.trim()){ setCoopStatus('Буфер обмена пуст — сначала скопируйте ссылку.'); return; }
+      el.value = t.trim();
+      el.dispatchEvent(new Event('input'));
+    }catch(e){
+      setCoopStatus('Браузер не дал прочитать буфер обмена. Нажмите на поле ниже и выберите «Вставить».');
+      try{ el.focus(); }catch(e2){}
+    }
+  }
+  hostPasteBtn.addEventListener('click', ()=> pasteInto(hostAnswerIn));
+  joinPasteBtn.addEventListener('click', ()=> pasteInto(coopCode));
+  let hostAutoTimer=null, joinAutoTimer=null;
+  hostAnswerIn.addEventListener('input', ()=>{
+    if(!kindOfCode(hostAnswerIn.value)) return;
+    clearTimeout(hostAutoTimer); hostAutoTimer=setTimeout(hostConnect,150);
+  });
+  coopCode.addEventListener('input', ()=>{
+    if(!kindOfCode(coopCode.value) || !joinStep2.classList.contains('hidden')) return;
+    clearTimeout(joinAutoTimer); joinAutoTimer=setTimeout(joinCoop,150);
+  });
+  async function shareLinkFrom(el, text){
+    try{ await navigator.share({ title:'ОРДА', text, url: el.value }); }
+    catch(e){ if(!(e && e.name==='AbortError')) copyTextFromField(el, 'Ссылка скопирована.', 'Не удалось скопировать автоматически.'); }
+  }
+  if(navigator.share){ shareHostBtn.classList.remove('hidden'); shareJoinBtn.classList.remove('hidden'); }
+  shareHostBtn.addEventListener('click', ()=> shareLinkFrom(hostCodeOut, 'Заходи в ОРДУ — нажми на ссылку, и всё подключится само:'));
+  shareJoinBtn.addEventListener('click', ()=> shareLinkFrom(joinAnswerOut, 'Мой ответ — открой эту ссылку там, где создавал комнату:'));
+
+  // Вкладка открыта по ссылке (#join=… от хоста или #answer=… от друга).
+  function handleLaunchHash(){
+    const m = (location.hash||'').match(/^#(join|answer)=([A-Za-z0-9_.\-]+)$/);
+    if(!m) return;
+    try{ history.replaceState(null, '', location.href.split('#')[0]); }catch(e){}
+    const code = m[2];
+    coopPanel.classList.remove('hidden');
+    if(m[1]==='join'){
+      showCoopFlow('join');
+      joinQuickMode.classList.add('hidden'); joinAdvancedMode.classList.remove('hidden');
+      coopCode.value = code;
+      joinCoop();
+      return;
+    }
+    // Ответ друга: пробуем передать его вкладке, где хост создавал комнату.
+    coopRoleChoice.classList.add('hidden'); coopHostFlow.classList.add('hidden'); coopJoinFlow.classList.add('hidden');
+    linkNotice.classList.remove('hidden');
+    linkNoticeText.textContent = 'Передаю ответ в открытую вкладку игры…';
+    setCoopStatus('');
+    let acked = false;
+    try{
+      const ch = new BroadcastChannel('orda-signal');
+      ch.onmessage = (e)=>{ if(e.data && e.data.k==='ack'){ acked=true; linkNoticeText.textContent='✅ Ответ передан вкладке, где вы создавали комнату — игра подключается. Эту вкладку можно закрыть.'; } };
+      ch.postMessage({k:'answer', code});
+    }catch(e){}
+    setTimeout(()=>{
+      if(acked) return;
+      linkNoticeText.textContent = 'Не нашёл вкладку, где вы создавали комнату (возможно, она открыта в другом браузере). Скопируйте ответ, вернитесь в ту вкладку и нажмите «Вставить ответ из буфера».';
+      linkNoticeCopyBtn.classList.remove('hidden');
+      linkNoticeCopyBtn.onclick = ()=> copyPlainText(makeLink('answer', code), 'Ответ скопирован — вставьте его в игре у хоста.', 'Не удалось скопировать автоматически.');
+    }, 1500);
+  }
 
   // ---------- Game flow ----------
   function resetGame(){
@@ -5016,6 +5205,7 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+  handleLaunchHash();
 
 })();
 </script>
