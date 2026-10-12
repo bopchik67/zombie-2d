@@ -234,6 +234,13 @@
     border-radius:10px;font-size:16px;cursor:pointer;}
   #settingsPanel{position:fixed;inset:0;z-index:95;background:rgba(8,10,7,.9);display:flex;align-items:center;justify-content:center;}
   #muteRow{display:flex;align-items:center;gap:8px;color:#d8cfb0;font-size:13px;margin:6px 0 4px;cursor:pointer;}
+  /* Значок связи (пинг + путь) и экран проверки соединения */
+  #netBadge{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:30;padding:5px 10px;
+    border:1px solid #5fae5a;background:rgba(24,28,18,.88);color:#d8cfb0;border-radius:999px;
+    font:600 11px 'JetBrains Mono',monospace;cursor:pointer;white-space:nowrap;}
+  #netPanel{position:fixed;inset:0;z-index:100;background:rgba(8,10,7,.9);display:flex;align-items:center;justify-content:center;touch-action:pan-y;}
+  #netInfo,#netTestResult{white-space:pre-wrap;line-height:1.55;font-size:13px;color:#d8cfb0;word-break:break-word;}
+  #netTestResult{margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;}
 
   #characterScreen h2{font-family:var(--font-display);text-transform:uppercase;letter-spacing:2px;color:var(--bone);
     font-size:clamp(1.6rem,6vw,2.6rem);margin:0 0 24px;}
@@ -434,6 +441,7 @@
       </div>
 
       <div class="coop-status" id="coopStatus">Выберите, кто вы, чтобы увидеть нужные шаги.</div>
+      <button class="coop-btn" id="openNetPanelBtn" style="background:#3a3a30;color:#d8cfb0;">🔎 Проверка соединения</button>
       <div class="coop-row"><button class="coop-btn" id="closeCoopBtn">Закрыть</button></div>
     </div>
   </div>
@@ -467,6 +475,17 @@
     <div id="campGrid"></div>
     <div class="coop-status" id="campStatus" style="text-align:center;"></div>
     <button class="big-btn" id="closeCampBtn">Назад</button>
+  </div>
+
+  <button id="netBadge" class="hidden"></button>
+  <div id="netPanel" class="hidden">
+    <div class="coop-box">
+      <h2>🔎 Проверка соединения</h2>
+      <div id="netInfo"></div>
+      <button class="coop-btn" id="netTestBtn">Проверить, какие способы связи работают</button>
+      <div id="netTestResult"></div>
+      <div class="coop-row"><button class="coop-btn" id="closeNetPanelBtn">Закрыть</button></div>
+    </div>
   </div>
 
   <button id="settingsBtn">⚙️</button>
@@ -1294,12 +1313,21 @@
   }
   // Надёжный канал — для редких критичных событий (покупка, рестарт, пауза,
   // тост), где потеря сообщения была бы настоящим багом.
-  function netSend(msg){ if(conn && conn.readyState==='open'){ try{ conn.send(JSON.stringify(msg)); }catch(e){} } }
+  // Снапшоты округляем: лишние знаки после запятой раньше раздували каждое
+  // сообщение почти вдвое — а трафик напрямую влияет на задержку и (при
+  // ретрансляции) на лимит. Координаты — до 0.1, остальное — до 0.001.
+  function roundNumbers(k,v){
+    if(typeof v!=='number') return v;
+    if(k==='x'||k==='y'||k==='tx'||k==='ty') return Math.round(v*10)/10;
+    return Math.round(v*1000)/1000;
+  }
+  function netStringify(msg){ return msg && msg.t==='snapshot' ? JSON.stringify(msg, roundNumbers) : JSON.stringify(msg); }
+  function netSend(msg){ if(conn && conn.readyState==='open'){ try{ conn.send(netStringify(msg)); }catch(e){} } }
   // Быстрый канал без гарантий доставки — для снапшотов и ввода: свежие
   // данные всё равно заменят потерянные через доли секунды, а само сообщение
   // никогда не блокирует канал в ожидании пересылки утерянного пакета.
   function netSendFast(msg){
-    if(connFast && connFast.readyState==='open'){ try{ connFast.send(JSON.stringify(msg)); return; }catch(e){} }
+    if(connFast && connFast.readyState==='open'){ try{ connFast.send(netStringify(msg)); return; }catch(e){} }
     // Фолбэк на надёжный канал, если быстрый почему-то ещё не открыт —
     // лучше с небольшой задержкой, чем совсем без данных.
     netSend(msg);
@@ -1307,15 +1335,26 @@
   function bothChannelsOpen(){ return !!(conn && conn.readyState==='open' && connFast && connFast.readyState==='open'); }
   function setCoopStatus(t){ coopStatus.textContent=t; }
 
+  // Серверы ретрансляции. ПОРЯДОК ВАЖЕН: личный аккаунт Metered — основной
+  // (поддерживает TCP и TLS на порту 443 — это единственный шанс, если у
+  // оператора режется UDP), общий бесплатный Open Relay — запасной.
+  // Cloudflare STUN убран намеренно: Cloudflare в России замедляется.
+  // Лимит личного аккаунта — 500 МБ/мес, поэтому при ретрансляции игра
+  // автоматически шлёт данные реже (см. netRelaySaving).
+  const TURN_USER = '93715af94cab51c03fc8b6a6';
+  const TURN_PASS = '3NBsPUm1vnDq5L5L';
+  const TURN_URLS = {
+    udp80:  'turn:global.relay.metered.ca:80',
+    tcp80:  'turn:global.relay.metered.ca:80?transport=tcp',
+    udp443: 'turn:global.relay.metered.ca:443',
+    tls443: 'turns:global.relay.metered.ca:443?transport=tcp',
+  };
   const ICE_CONFIG = {
     iceServers: [
+      { urls: 'stun:stun.relay.metered.ca:80' },
       { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun.cloudflare.com:3478' },
-      { urls: 'stun:openrelay.metered.ca:80' },
-      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: Object.values(TURN_URLS), username: TURN_USER, credential: TURN_PASS },
+      { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443?transport=tcp'], username: 'openrelayproject', credential: 'openrelayproject' },
     ],
     // Начинаем собирать ICE-кандидаты заранее, не дожидаясь первого вызова —
     // немного ускоряет установку соединения.
@@ -1344,6 +1383,162 @@
       return kind;
     } catch(e){ return null; }
   }
+
+  // ---------- Проверка соединения, пинг, режим экономии ----------
+  // Подробности о реально выбранном пути: тип (напрямую/ретранслятор),
+  // протокол (udp/tcp), сколько байт прошло. Нужно экрану «Проверка
+  // соединения» и значку в игре.
+  async function diagnoseLinkInfo(peerConn){
+    try{
+      const stats = await peerConn.getStats();
+      let pairId = null;
+      stats.forEach(r=>{ if(r.type==='transport' && r.selectedCandidatePairId) pairId = r.selectedCandidatePairId; });
+      if(!pairId) stats.forEach(r=>{ if(r.type==='candidate-pair' && r.state==='succeeded' && r.nominated) pairId = r.id; });
+      if(!pairId) return null;
+      const pair = stats.get(pairId); if(!pair) return null;
+      const local = stats.get(pair.localCandidateId), remote = stats.get(pair.remoteCandidateId);
+      const isRelay = (local && local.candidateType==='relay') || (remote && remote.candidateType==='relay');
+      return {
+        kind: isRelay ? 'relay' : 'direct',
+        proto: (local && local.protocol) || null,
+        relayProto: (local && local.relayProtocol) || null,
+        bytes: (pair.bytesSent||0) + (pair.bytesReceived||0),
+      };
+    } catch(e){ return null; }
+  }
+
+  const netPeerConns = [];
+  let netRtt = null;            // сглаженный пинг, мс
+  let netLinkInfo = null;       // агрегат по всем соединениям
+  const netBadge = document.getElementById('netBadge');
+  const netPanel = document.getElementById('netPanel');
+  const netInfoEl = document.getElementById('netInfo');
+  const netTestResultEl = document.getElementById('netTestResult');
+  const netTestBtn = document.getElementById('netTestBtn');
+  const closeNetPanelBtn = document.getElementById('closeNetPanelBtn');
+  const openNetPanelBtn = document.getElementById('openNetPanelBtn');
+
+  // Включается автоматически при ретрансляции: снапшоты и ввод шлются вдвое
+  // реже — лимит личного TURN всего 500 МБ в месяц, а игра и так
+  // сглаживает движение интерполяцией.
+  function netRelaySaving(){ return netLinkKind==='relay'; }
+
+  async function refreshLinkInfo(){
+    const infos = [];
+    for(const p of netPeerConns){
+      if(p.connectionState==='closed' || p.connectionState==='failed') continue;
+      const i = await diagnoseLinkInfo(p);
+      if(i) infos.push(i);
+    }
+    if(!infos.length){ updateNetBadge(); return; }
+    const relay = infos.find(i=>i.kind==='relay');
+    netLinkInfo = {
+      kind: relay ? 'relay' : 'direct',
+      proto: (relay||infos[0]).proto,
+      relayProto: relay ? relay.relayProto : null,
+      bytes: infos.reduce((a,i)=>a+i.bytes,0),
+    };
+    netLinkKind = netLinkInfo.kind;
+    updateNetBadge();
+    if(!netPanel.classList.contains('hidden')) renderNetInfo();
+  }
+
+  function linkLabel(){
+    if(!netLinkInfo) return 'путь определяется…';
+    if(netLinkInfo.kind==='direct') return 'напрямую (P2P)';
+    const rp = netLinkInfo.relayProto ? ' '+netLinkInfo.relayProto.toUpperCase() : '';
+    return 'через ретранслятор'+rp;
+  }
+  function updateNetBadge(){
+    if(!remoteConnected){ netBadge.classList.add('hidden'); return; }
+    netBadge.classList.remove('hidden');
+    const ping = netRtt!=null ? netRtt+' мс' : '… мс';
+    const relay = netLinkInfo && netLinkInfo.kind==='relay';
+    netBadge.textContent = (relay ? '🟠 ' : '🟢 ') + ping + (relay ? ' · ретранслятор' : ' · напрямую');
+    netBadge.style.borderColor = relay ? '#d98a2b' : '#5fae5a';
+  }
+  function renderNetInfo(){
+    if(!remoteConnected){ netInfoEl.textContent = 'Друг пока не подключён. Кнопка ниже проверит, какие способы связи доступны из вашей сети.'; return; }
+    const lines = [];
+    lines.push('Путь: '+linkLabel());
+    if(netLinkInfo && netLinkInfo.proto) lines.push('Протокол: '+netLinkInfo.proto.toUpperCase());
+    lines.push('Пинг: '+(netRtt!=null ? netRtt+' мс' : 'измеряется…'));
+    if(netLinkInfo) lines.push('Передано за сессию: '+(netLinkInfo.bytes/1048576).toFixed(1)+' МБ'+(netLinkInfo.kind==='relay' ? ' (идёт в лимит 500 МБ/мес)' : ' (лимит не тратится)'));
+    if(netRelaySaving()) lines.push('Режим экономии трафика включён: данные шлются реже.');
+    netInfoEl.textContent = lines.join('\n');
+  }
+
+  // Периодически: пинг и обновление пути (ICE может переключиться).
+  setInterval(()=>{
+    if(!remoteConnected) return;
+    netSendFast({t:'ping', ts:performance.now()});
+  }, 2000);
+  setInterval(()=>{ if(remoteConnected) refreshLinkInfo(); else updateNetBadge(); }, 5000);
+
+  // --- Тест доступности: без друга, по каждому способу связи отдельно ---
+  function probeIce(label, servers, policy, wantType, timeoutMs){
+    return new Promise(resolve=>{
+      const t0 = performance.now(); let done=false, p=null;
+      const finish=(ok,note)=>{ if(done) return; done=true; try{ p&&p.close(); }catch(e){} resolve({label,ok,ms:Math.round(performance.now()-t0),note:note||''}); };
+      try{ p = new RTCPeerConnection({iceServers:servers, iceTransportPolicy:policy}); }
+      catch(e){ return resolve({label,ok:false,ms:0,note:'ошибка'}); }
+      p.onicecandidate = e=>{
+        if(e.candidate){ if(e.candidate.candidate.indexOf(' typ '+wantType)>-1) finish(true); }
+        else finish(false,'нет ответа');
+      };
+      setTimeout(()=>finish(false,'тайм-аут'), timeoutMs);
+      try{ p.createDataChannel('t'); p.createOffer().then(o=>p.setLocalDescription(o)).catch(()=>finish(false,'ошибка')); }
+      catch(e){ finish(false,'ошибка'); }
+    });
+  }
+  function probeSignaling(timeoutMs){
+    return new Promise(resolve=>{
+      const t0 = performance.now(); let done=false, ws=null;
+      const finish=(ok,note)=>{ if(done) return; done=true; try{ ws&&ws.close(); }catch(e){} resolve({label:'Сервер быстрого режима (PeerJS)',ok,ms:Math.round(performance.now()-t0),note:note||''}); };
+      try{
+        const id='chk'+Math.random().toString(36).slice(2,10);
+        ws = new WebSocket('wss://0.peerjs.com/peerjs?key=peerjs&id='+id+'&token='+id);
+        ws.onopen = ()=>finish(true);
+        ws.onerror = ()=>finish(false,'нет связи');
+        ws.onclose = ()=>finish(false,'закрыто');
+      }catch(e){ finish(false,'ошибка'); }
+      setTimeout(()=>finish(false,'тайм-аут'), timeoutMs);
+    });
+  }
+  let netTestRunning = false;
+  async function runConnTest(){
+    if(netTestRunning) return;
+    if(typeof RTCPeerConnection==='undefined'){ netTestResultEl.textContent='Этот браузер не поддерживает WebRTC.'; return; }
+    netTestRunning = true; netTestBtn.disabled = true;
+    netTestResultEl.textContent = 'Проверяю… это займёт до 8 секунд.';
+    const cred = { username:TURN_USER, credential:TURN_PASS };
+    const jobs = [
+      probeIce('Прямая связь (UDP, STUN)', [{urls:'stun:stun.relay.metered.ca:80'},{urls:'stun:stun.l.google.com:19302'}], 'all', 'srflx', 7000),
+      probeIce('Ретранслятор UDP :80',  [{urls:TURN_URLS.udp80,  ...cred}], 'relay', 'relay', 8000),
+      probeIce('Ретранслятор UDP :443', [{urls:TURN_URLS.udp443, ...cred}], 'relay', 'relay', 8000),
+      probeIce('Ретранслятор TCP :80',  [{urls:TURN_URLS.tcp80,  ...cred}], 'relay', 'relay', 8000),
+      probeIce('Ретранслятор TLS :443', [{urls:TURN_URLS.tls443, ...cred}], 'relay', 'relay', 8000),
+      probeIce('Запасной Open Relay',   [{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443?transport=tcp'], username:'openrelayproject', credential:'openrelayproject'}], 'relay', 'relay', 8000),
+      probeSignaling(7000),
+    ];
+    const res = await Promise.all(jobs);
+    const ok = (i)=>res[i].ok;
+    const lines = res.map(r=> (r.ok?'✅ ':'❌ ')+r.label+' — '+(r.ok ? r.ms+' мс' : r.note));
+    const anyRelay = ok(1)||ok(2)||ok(3)||ok(4);
+    let verdict;
+    if(ok(0)) verdict = 'Прямая связь возможна — это лучший вариант, трафик не тратится.';
+    else if(anyRelay) verdict = 'Прямая связь недоступна (возможно, UDP режется), но ретранслятор работает — игра пойдёт через него, чуть медленнее.';
+    else if(ok(5)) verdict = 'Личный ретранслятор недоступен, но запасной Open Relay отвечает.';
+    else verdict = 'Ни прямая связь, ни ретрансляторы не отвечают. Попробуйте другую сеть (Wi-Fi вместо мобильного или наоборот).';
+    if(!ok(6)) verdict += ' Сервер быстрого режима недоступен — используйте «Продвинутый режим» (обмен двумя кодами).';
+    netTestResultEl.textContent = lines.join('\n') + '\n\n' + verdict;
+    netTestRunning = false; netTestBtn.disabled = false;
+  }
+  function openNetPanel(){ renderNetInfo(); netTestResultEl.textContent=''; netPanel.classList.remove('hidden'); if(remoteConnected) refreshLinkInfo(); }
+  netBadge.addEventListener('click', openNetPanel);
+  openNetPanelBtn.addEventListener('click', openNetPanel);
+  closeNetPanelBtn.addEventListener('click', ()=> netPanel.classList.add('hidden'));
+  netTestBtn.addEventListener('click', runConnTest);
 
   function waitIceComplete(peerConn){
     return new Promise(resolve=>{
@@ -1396,6 +1591,7 @@
     if(peerObj){ try{ peerObj.destroy(); }catch(e){} }
     pc=null; conn=null; connFast=null; peerObj=null;
     netMode='solo'; remoteConnected=false; remoteShopPaused=false; netLinkKind=null;
+    netPeerConns.length=0; netLinkInfo=null; netRtt=null; updateNetBadge();
     syncPauseState();
     resetCoopUI();
   }
@@ -1496,6 +1692,7 @@
   }
 
   function attachConnectionDiagnostics(peerConn){
+    if(!netPeerConns.includes(peerConn)) netPeerConns.push(peerConn);
     peerConn.onconnectionstatechange = async ()=>{
       const st = peerConn.connectionState;
       if(st==='connecting'){ setCoopStatus('Устанавливаю соединение… В сложных сетях (мобильный интернет, строгий firewall) это может занять до 10–15 секунд — идёт попытка через резервный сервер.'); }
@@ -1507,13 +1704,16 @@
         // маршруте вроде Россия↔Германия это может быть основной источник
         // лагов, а не сама игра — полезно знать, чтобы понимать, чего ждать.
         netLinkKind = await diagnoseLinkKind(peerConn);
+        refreshLinkInfo();
       }
+      updateNetBadge();
     };
   }
 
   function bothReadyGo(){
     if(!bothChannelsOpen()) return;
     remoteConnected=true;
+    updateNetBadge();
     const linkNote = netLinkKind==='relay'
       ? ' Соединение идёт через резервный сервер (relay) — это чуть медленнее прямого, но должно быть стабильно.'
       : (netLinkKind==='direct' ? ' Соединение прямое (P2P) — минимальная задержка.' : '');
@@ -1620,7 +1820,7 @@
   }
   function sendSnapshot(force=false){
     if(!netHost() || !connFast || connFast.readyState!=='open') return;
-    if(!force && netSnapshotTimer<0.06) return;
+    if(!force && netSnapshotTimer<(netRelaySaving()?0.12:0.06)) return;
     netSnapshotTimer=0;
     const s = serializeState();
     if(pendingSoundEvents.length){ s.sounds = pendingSoundEvents; pendingSoundEvents = []; }
@@ -1716,6 +1916,16 @@
   }
   function handleNetData(msg){
     if(!msg) return;
+    // Пинг/понг — одинаково для обеих сторон.
+    if(msg.t==='ping'){ netSendFast({t:'pong', ts:msg.ts}); return; }
+    if(msg.t==='pong'){
+      if(Number.isFinite(msg.ts)){
+        const rtt = Math.max(1, Math.round(performance.now() - msg.ts));
+        netRtt = netRtt==null ? rtt : Math.round(netRtt*0.6 + rtt*0.4);
+        updateNetBadge();
+      }
+      return;
+    }
     if(netHost()) {
       if(msg.t==='input'){ remoteInput.dx=Number.isFinite(msg.dx)?msg.dx:0; remoteInput.dy=Number.isFinite(msg.dy)?msg.dy:0; if(Number.isFinite(msg.aimAngle)) remotePlayer.aimAngle=msg.aimAngle; remotePlayer.moving=!!msg.moving; }
       else if(msg.t==='buy'){ buyUpgrade(msg.id,true); }
@@ -1730,7 +1940,7 @@
   }
   function netTick(dt){
     if(netClient()){
-      netSendTimer-=dt; if(netSendTimer<=0){ netSendTimer=0.05; const v=state.paused?{dx:0,dy:0}:getInputVector(); netSendFast({t:'input',dx:v.dx,dy:v.dy,aimAngle:player.aimAngle,moving:Math.hypot(v.dx,v.dy)>0.05}); }
+      netSendTimer-=dt; if(netSendTimer<=0){ netSendTimer=netRelaySaving()?0.1:0.05; const v=state.paused?{dx:0,dy:0}:getInputVector(); netSendFast({t:'input',dx:v.dx,dy:v.dy,aimAngle:player.aimAngle,moving:Math.hypot(v.dx,v.dy)>0.05}); }
     }
     if(netHost()){ netSnapshotTimer+=dt; sendSnapshot(); }
   }
